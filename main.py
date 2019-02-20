@@ -16,6 +16,7 @@ class Immeuble():
 		self.intervalle = intervalle  # l'intervalle représente le nombre d'étages 
 		self.liste_boutons = liste_boutons
 		self.liste_etages_accessibles = self.calculerEtagesAccessibles()
+		self.limite = self.calculerLimiteFormule()
 
 		# constantes
 		with open("ressources/liste_nb_premiers", "rb") as f: 
@@ -32,6 +33,16 @@ class Immeuble():
 			else: 
 				i += 1
 		return decomposition
+
+	def premiersEntreEux(self, x, y): 
+		""" Méthode permettant de savoir si deux nombres donnés sont premiers entre eux. """ 
+		premiers_entre_eux = True 
+		dec_x = self.decomposer(x)
+		dec_y = self.decomposer(y)
+		for i in range(len(dec_x)):
+			if dec_x[i] in dec_y: # on teste si on trouve un facteur de la décomposition commun 
+				premiers_entre_eux = False 
+		return premiers_entre_eux
 
 
 class ImmeubleDeuxBoutonsNaturels(Immeuble): 
@@ -53,6 +64,14 @@ class ImmeubleDeuxBoutonsNaturels(Immeuble):
 		etages_accessibles = sorted(list(set(etages_accessibles)))  # pour éviter les doublons et trier la liste 
 		return etages_accessibles
 
+	def calculerLimiteFormule(self): 
+		""" On calcule la 'limite' des boutons grâce à la formule f(x, y) = (x - 1)(y - 1). """
+		bouton1, bouton2 = self.liste_boutons[1], self.liste_boutons[2]
+		if self.premiersEntreEux(bouton1, bouton2):
+			limite = (bouton1 - 1) * (bouton2 - 1)
+		else: # ils ne sont pas premiers entre eux
+			limite = "PAS DE LIMITE CAR PAS PREMIERS ENTRE EUX"
+		return limite 
 
 def main():
 	""" Fonction prinpale du programme. """
