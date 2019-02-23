@@ -13,26 +13,101 @@ class Immeuble():
 	On y trouve aussi de nombreuses méthodes qui analysent l'immeuble. """
 	def __init__(self, intervalle, liste_boutons):
 		""" On crée notre objet."""
+		# constantes
+		with open("ressources/liste_nb_premiers", "rb") as f: 
+			self.liste_nb_premiers = pickle.Unpickler(f).load()
+		# variables
 		self.intervalle = intervalle  # l'intervalle représente le nombre d'étages 
 		self.liste_boutons = liste_boutons
 		self.liste_etages_accessibles = self.calculerEtagesAccessibles()
 		self.limite = self.calculerLimiteFormule()
+		self.nb_etages_inaccessibles = self.calculerNbEtagesInaccessibles()
+		self.nb_etages_accessibles = self.intervalle - self.nb_etages_inaccessibles
 
-		# constantes
-		with open("ressources/liste_nb_premiers", "rb") as f: 
-			self.liste_nb_premiers = pickle.Unpickler(f).load()
+	def __repr__(self):
+		""" Méthode permettant d'afficher toutes les propriétés de notre objet. """
+		representation = "\
+		#### PROPRIETES ####\n\
+		Nombre d'étages total : {}\n\
+		Boutons disponibles : {}\n\
+		Nombre d'étages accessibles : {}(soit {}%)\n\
+		Limite (seulement si boutons premiers entre eux) : {}\n\
+		#### FIN PROPRIETES ####\
+		".format(self.intervalle, ", ".join(str(i) for i in self.liste_boutons), self.nb_etages_accessibles, round((self.nb_etages_accessibles / self.intervalle) * 100, 1), self.limite)
+		return representation
 
 	def decomposer(self, nombre_a_decomposer): 
 		""" Méthode permettant de décomposer en produit de facteurs premiers un nombre donné. """
 		decomposition = []
 		i = 0
 		while nombre_a_decomposer != 1:
-			if nombre_a_decomposer % self.nb_premiers[i] == 0: 
-				nombre_a_decomposer /= self.nb_premiers[i]
-				decomposition.append(self.nb_premiers[i])
+			if nombre_a_decomposer % self.liste_nb_premiers[i] == 0: 
+				nombre_a_decomposer /= self.liste_nb_premiers[i]
+				decomposition.append(self.liste_nb_premiers[i])
 			else: 
 				i += 1
 		return decomposition
+
+
+class ImmeubleDeuxBoutonsNaturels(Immeuble): 
+	""" Classe représentant un immeuble possédant deux boutons naturels, en plus du bouton 0. """
+	def __init__(self, intervalle, liste_boutons):
+		self.bouton1 = liste_boutons[1] # boutons avant car dans le constructeur de l'immeuble on appelle des méthodes qui ont besoin des boutons
+		self.bouton2 = liste_boutons[2]
+		Immeuble.__init__(self, intervalle, liste_boutons) # on reprend le constructeur d'Immeuble
+
+	def calculerEtagesAccessibles(self):
+		""" Méthode permettant de calculer les étages accessibles de l'immeuble à partir deux deux boutons. """
+		etages_accessibles = []
+		i = 0
+		while i * self.bouton1 <= self.intervalle: 
+			j = 0
+			while i * self.bouton1 + j * self.bouton2 <= self.intervalle:
+				etages_accessibles.append(i * self.bouton1 + j * self.bouton2)
+				j += 1
+			i += 1
+		etages_accessibles = sorted(list(set(etages_accessibles)))  # pour éviter les doublons et trier la liste 
+		return etages_accessibles
+
+	def calculerLimiteFormule(self): 
+		""" On calcule la 'limite' des boutons grâce à la formule f(x, y) = (x - 1)(y - 1). """
+		if self.premiersEntreEux(self.bouton1, self.bouton2):
+			limite = (self.bouton1 - 1) * (self.bouton2 - 1)
+		else: # ils ne sont pas premiers entre eux
+			limite = "PAS DE LIMITE CAR PAS PREMIERS ENTRE EUX"
+		return limite 
+
+	def calculerNbEtagesInaccessibles(self):
+		""" On calcule le nombre d'étages inaccessibles grâce à la formule : (I / k) * (k - 1) + (aO - a - O + 1) / 2 ."""
+		if self.premiersEntreEux(self.bouton1, self.bouton2):
+			k = 1
+			a = self.bouton1
+			O = self.bouton2
+		else:
+			dec_1 = self.decomposer(self.bouton1)
+			dec_2 = self.decomposer(self.bouton2)
+			liste_diviseurs_a_suppr = [] # les diviseurs "communs" de k qui sont dans 1 que l'on ne peut pas supprimer avant la fin de la boucle for
+			liste_diviseurs_communs = []
+			for i in range(len(dec_1)):
+				if dec_1[i] in dec_2: 
+					liste_diviseurs_communs.append(dec_1[i])
+					liste_diviseurs_a_suppr.append(i)
+					del dec_2[dec_2.index(dec_1[i])] # on supprime le facteur que l'on retrouve dans k
+			for i in range(len(liste_diviseurs_a_suppr)): # suppression des facteurs utilisés
+				del dec_1[liste_diviseurs_a_suppr[i]]
+				for j in range(len(liste_diviseurs_a_suppr)): 
+					liste_diviseurs_a_suppr[j] = liste_diviseurs_a_suppr[j] - 1
+			k = 1 
+			for i in range(len(liste_diviseurs_communs)): 
+				k *= liste_diviseurs_communs[i]
+			a = 1
+			for i in range(len(dec_1)):
+				a *= dec_1[i]
+			O = 1
+			for i in range(len(dec_2)):
+				O *= dec_2[i]
+		nb_etages_inaccessibles = (self.intervalle * k - self.intervalle) / k + (a * O - a - O + 1) / 2 # on applique la formule 
+		return nb_etages_inaccessibles
 
 	def premiersEntreEux(self, x, y): 
 		""" Méthode permettant de savoir si deux nombres donnés sont premiers entre eux. """ 
@@ -44,34 +119,6 @@ class Immeuble():
 				premiers_entre_eux = False 
 		return premiers_entre_eux
 
-
-class ImmeubleDeuxBoutonsNaturels(Immeuble): 
-	""" Classe représentant un immeuble possédant deux boutons naturels, en plus du bouton 0. """
-	def __init__(self, intervalle, liste_boutons):
-		Immeuble.__init__(self, intervalle, liste_boutons) # on reprend le constructeur d'Immeuble
-
-	def calculerEtagesAccessibles(self):
-		""" Méthode permettant de calculer les étages accessibles de l'immeuble à partir deux deux boutons. """
-		etages_accessibles = []
-		bouton1, bouton2 = self.liste_boutons[1], self.liste_boutons[2]
-		i = 0
-		while i * bouton1 <= self.intervalle: 
-			j = 0
-			while i * bouton1 + j * bouton2 <= self.intervalle:
-				etages_accessibles.append(i * bouton1 + j * bouton2)
-				j += 1
-			i += 1
-		etages_accessibles = sorted(list(set(etages_accessibles)))  # pour éviter les doublons et trier la liste 
-		return etages_accessibles
-
-	def calculerLimiteFormule(self): 
-		""" On calcule la 'limite' des boutons grâce à la formule f(x, y) = (x - 1)(y - 1). """
-		bouton1, bouton2 = self.liste_boutons[1], self.liste_boutons[2]
-		if self.premiersEntreEux(bouton1, bouton2):
-			limite = (bouton1 - 1) * (bouton2 - 1)
-		else: # ils ne sont pas premiers entre eux
-			limite = "PAS DE LIMITE CAR PAS PREMIERS ENTRE EUX"
-		return limite 
 
 def main():
 	""" Fonction prinpale du programme. """
