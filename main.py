@@ -122,7 +122,25 @@ class ImmeubleDeuxBoutonsNaturels(Immeuble):
 
 def main():
 	""" Fonction prinpale du programme. """
-	pass 
+	while True:
+		erreur = False
+		commande = input("Rentrez la commande que vous souhaitez (pour sortir : exit()).\n")
+		try: 
+			exec(commande)
+		except SyntaxError: 
+			erreur = True
+			detail_erreur = "SYNTAXE"
+		except NameError:
+			erreur = True
+			detail_erreur = "NOM VARIABLE"
+		except ValueError: 
+			erreur = True
+			detail_erreur = "VALEUR VARIABLE"
+		except ZeroDivisionError:
+			erreur = True
+			detail_erreur = "DIVISION PAR ZERO"
+		if(erreur):
+			print("La commande n'est rentrée n'est pas correcte ! Détails : {}.".format(detail_erreur))
 
 
 if __name__ == "__main__":
