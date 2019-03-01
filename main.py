@@ -63,16 +63,16 @@ class ImmeubleDeuxBoutonsNaturels(Immeuble):
 
 	def calculerEtagesAccessibles(self):
 		""" Méthode permettant de calculer les étages accessibles de l'immeuble à partir deux deux boutons. """
-		etages_accessibles = []
+		liste_etages_accessibles = []
 		i = 0
 		while i * self.bouton1 <= self.intervalle: 
 			j = 0
 			while i * self.bouton1 + j * self.bouton2 <= self.intervalle:
-				etages_accessibles.append(i * self.bouton1 + j * self.bouton2)
+				liste_etages_accessibles.append(i * self.bouton1 + j * self.bouton2)
 				j += 1
 			i += 1
-		etages_accessibles = sorted(list(set(etages_accessibles)))  # pour éviter les doublons et trier la liste 
-		return etages_accessibles
+		liste_etages_accessibles = sorted(list(set(liste_etages_accessibles)))  # pour éviter les doublons et trier la liste 
+		return liste_etages_accessibles
 
 	def calculerLimite(self): 
 		""" On calcule la 'limite' des boutons grâce à la formule f(x, y) = (x - 1)(y - 1). """
@@ -135,18 +135,19 @@ class ImmeubleTroisBoutonsNaturels(Immeuble):
 
 	def calculerEtagesAccessibles(self):
 		""" Méthode permettant de calculer les étages accessibles à partir des trois boutons de l'immeuble. """
+		liste_etages_accessibles = []
 		i = 0
 		while i * self.bouton1 <= self.intervalle:
 			j = 0
 			while i * self.bouton1 + j * self.bouton2 <= self.intervalle:
 				k = 0
 				while i * self.bouton1 + j * self.bouton2 + k * self.bouton3 <= self.intervalle:
-					etages_accessibles.append(i * self.bouton1 + j * self.bouton2 + k * self.bouton3)
+					liste_etages_accessibles.append(i * self.bouton1 + j * self.bouton2 + k * self.bouton3)
 					k += 1
 				j += 1
 			i += 1
-		etages_accessibles = list(sorted(set(etages_accessibles)))
-		return etages_accessibles
+		liste_etages_accessibles = list(sorted(set(liste_etages_accessibles)))
+		return liste_etages_accessibles
 
 	def calculerLimite(self):
 		""" Méthode permettant de calculer la limite des boutons, s'il y en a une. """
@@ -167,7 +168,7 @@ class ImmeubleTroisBoutonsNaturels(Immeuble):
 				if dec_x[i] in dec_y or dec_x[i] in dec_z or dec_y[j] in dec_z:
 					premiers_entre_eux = False
 		return premiers_entre_eux
-		
+
 
 def main():
 	""" Fonction prinpale du programme. """
@@ -182,6 +183,9 @@ def main():
 		except NameError:
 			erreur = True
 			detail_erreur = "NOM VARIABLE"
+		except AttributeError:
+			erreur = True
+			detail_erreur = "ATTRIBUT INEXISTANT"
 		except ValueError: 
 			erreur = True
 			detail_erreur = "VALEUR VARIABLE"
