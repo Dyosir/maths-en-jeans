@@ -1,4 +1,9 @@
-# coding: utf-8 
+# coding: utf-8
+
+"""
+Adaptation du programme en version procédurale, mais en utilisant la POO. Seules les fonctions utilisées pour récolter des données n'ont pas été adaptées.
+Des fonctions comme "debug", "brut", etc ...
+"""
 
 
 import os
@@ -20,7 +25,7 @@ class Immeuble():
 		self.intervalle = intervalle  # l'intervalle représente le nombre d'étages 
 		self.liste_boutons = liste_boutons
 		self.liste_etages_accessibles = self.calculerEtagesAccessibles()
-		self.limite = self.calculerLimiteFormule()
+		self.limite = self.calculerLimite()
 		self.nb_etages_inaccessibles = self.calculerNbEtagesInaccessibles()
 		self.nb_etages_accessibles = self.intervalle - self.nb_etages_inaccessibles
 
@@ -69,7 +74,7 @@ class ImmeubleDeuxBoutonsNaturels(Immeuble):
 		etages_accessibles = sorted(list(set(etages_accessibles)))  # pour éviter les doublons et trier la liste 
 		return etages_accessibles
 
-	def calculerLimiteFormule(self): 
+	def calculerLimite(self): 
 		""" On calcule la 'limite' des boutons grâce à la formule f(x, y) = (x - 1)(y - 1). """
 		if self.premiersEntreEux(self.bouton1, self.bouton2):
 			limite = (self.bouton1 - 1) * (self.bouton2 - 1)
@@ -119,6 +124,50 @@ class ImmeubleDeuxBoutonsNaturels(Immeuble):
 				premiers_entre_eux = False 
 		return premiers_entre_eux
 
+
+class ImmeubleTroisBoutonsNaturels(Immeuble):
+	""" Classe représentant un immeuble avec trois boutons naturels, en plus de 0. """
+	def __init__(self, intervalle, liste_boutons):
+		self.bouton1 = liste_boutons[1]
+		self.bouton2 = liste_boutons[2]
+		self.bouton3 = liste_boutons[3]
+		Immeuble.__init__(self, intervalle, liste_boutons)
+
+	def calculerEtagesAccessibles(self):
+		""" Méthode permettant de calculer les étages accessibles à partir des trois boutons de l'immeuble. """
+		i = 0
+		while i * self.bouton1 <= self.intervalle:
+			j = 0
+			while i * self.bouton1 + j * self.bouton2 <= self.intervalle:
+				k = 0
+				while i * self.bouton1 + j * self.bouton2 + k * self.bouton3 <= self.intervalle:
+					etages_accessibles.append(i * self.bouton1 + j * self.bouton2 + k * self.bouton3)
+					k += 1
+				j += 1
+			i += 1
+		etages_accessibles = list(sorted(set(etages_accessibles)))
+		return etages_accessibles
+
+	def calculerLimite(self):
+		""" Méthode permettant de calculer la limite des boutons, s'il y en a une. """
+		return "PROTOTYPE"
+
+	def calculerNbEtagesInaccessibles(self): 
+		""" Méthode permettant de calculer le nombre d'étages inaccessibles. """
+		return 0
+
+	def premiersEntreEux(self, x, y, z):
+		""" Méthode permettant de savoir si trois nombres donnés sont premiers entre eux. """
+		premiers_entre_eux = True
+		dec_x = self.decomposer(x)
+		dec_y = self.decomposer(y)
+		dec_z = self.decomposer(z)
+		for i in range(len(dec_x)):
+			for j in range(len(dec_y)):
+				if dec_x[i] in dec_y or dec_x[i] in dec_z or dec_y[j] in dec_z:
+					premiers_entre_eux = False
+		return premiers_entre_eux
+		
 
 def main():
 	""" Fonction prinpale du programme. """
